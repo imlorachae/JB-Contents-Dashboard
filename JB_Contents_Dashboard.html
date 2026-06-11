@@ -856,10 +856,13 @@ function buildSummary() {
 /* ═══════════════════════════════════════════
    SIDEBAR
 ═══════════════════════════════════════════ */
+const BRANDED_PRODUCTS = ['Chamuhee', 'Yoga'];
+
 function buildSidebar() {
   const cnt = {};
   DATA.forEach(d => d.products.forEach(p => cnt[p] = (cnt[p] || 0) + 1));
-  const prods = Object.keys(cnt).sort();
+  const prods   = Object.keys(cnt).filter(p => !BRANDED_PRODUCTS.includes(p)).sort();
+  const branded = BRANDED_PRODUCTS.filter(p => cnt[p]);
 
   const chCnt = {yt:0, sg:0, my:0, gl:0, db:0};
   DATA.forEach(d => {
@@ -871,18 +874,30 @@ function buildSidebar() {
     if (ml.db) chCnt.db++;
   });
 
-  let h = `<div class="sb-hd">${t('필터','Filter')}</div>`;
-  h += sbItem('all',   t('📋 전체 콘텐츠','📋 All Content'),   DATA.length);
-  h += sbItem('multi', t('🔗 복합 상품 영상','🔗 Multi-Product'), DATA.filter(d => d.isMulti).length);
-  h += sbItem('nolnk', t('⏳ 게시 대기','⏳ Pending'),      DATA.filter(d => !d.hasLink).length);
-  h += `<div class="sb-hr"></div><div class="sb-hd">${t('채널별','By Channel')}</div>`;
-  h += sbItem('ch_yt', '▶ YouTube',     chCnt.yt);
-  h += sbItem('ch_sg', t('📷 IG 싱가폴','📷 IG Singapore'),  chCnt.sg);
+  // 채널 먼저
+  let h = `<div class="sb-hd">${t('채널별','By Channel')}</div>`;
+  h += sbItem('ch_sg', t('📷 IG 싱가폴','📷 IG Singapore'), chCnt.sg);
+  h += sbItem('ch_gl', t('🌍 IG 글로벌','🌍 IG Global'),    chCnt.gl);
   h += sbItem('ch_my', t('📷 IG 말레이','📷 IG Malaysia'),  chCnt.my);
-  h += sbItem('ch_gl', t('🌍 IG 글로벌','🌍 IG Global'),  chCnt.gl);
-  h += sbItem('ch_db', '📦 Dropbox',    chCnt.db);
-  h += `<div class="sb-hr"></div><div class="sb-hd">${t('상품별','By Product')}</div>`;
+  h += sbItem('ch_yt', '▶ YouTube',                         chCnt.yt);
+  h += sbItem('ch_db', '📦 Dropbox',                        chCnt.db);
+
+  // 필터
+  h += `<div class="sb-hr"></div><div class="sb-hd">${t('필터','Filter')}</div>`;
+  h += sbItem('all',   t('📋 전체 콘텐츠','📋 All Content'),    DATA.length);
+  h += sbItem('multi', t('🔗 복합 상품 영상','🔗 Multi-Product'), DATA.filter(d => d.isMulti).length);
+  h += sbItem('nolnk', t('⏳ 게시 대기','⏳ Pending'),           DATA.filter(d => !d.hasLink).length);
+
+  // 일반 상품
+  h += `<div class="sb-hr"></div><div class="sb-hd">${t('상품별','Products')}</div>`;
   prods.forEach(p => h += sbItem(p, p, cnt[p]));
+
+  // 브랜디드 / 컨셉
+  if (branded.length) {
+    h += `<div class="sb-hr"></div><div class="sb-hd">${t('브랜디드','Branded')}</div>`;
+    branded.forEach(p => h += sbItem(p, p, cnt[p]));
+  }
+
   document.getElementById('sb').innerHTML = h;
 }
 
