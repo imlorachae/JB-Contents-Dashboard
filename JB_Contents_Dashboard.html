@@ -1,0 +1,1338 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<title>JB Performing Contents Dashboard</title>
+<style>
+:root {
+  --p: #6d28d9; --p-bg: #f5f3ff; --p-dark: #4c1d95;
+  --bg: #f4f4f7; --white: #fff;
+  --border: #e4e4e7; --text: #18181b; --muted: #71717a;
+  --green: #16a34a; --amber: #d97706; --red: #dc2626;
+  --sh: 0 1px 4px rgba(0,0,0,.08); --sh2: 0 6px 20px rgba(0,0,0,.12);
+  --r: 11px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,'Noto Sans KR',BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text)}
+
+/* ── HEADER ── */
+.hdr{
+  position:sticky;top:0;z-index:60;
+  background:var(--white);border-bottom:1px solid var(--border);
+  display:flex;align-items:center;gap:10px;
+  padding:0 20px;height:56px;
+  box-shadow:var(--sh);
+}
+.logo{font-size:16px;font-weight:800;color:var(--p);white-space:nowrap;letter-spacing:-.3px}
+.srch-wrap{flex:1;max-width:340px;position:relative}
+.srch-wrap svg{position:absolute;left:9px;top:50%;transform:translateY(-50%);pointer-events:none;color:var(--muted)}
+.srch{
+  width:100%;padding:7px 10px 7px 30px;
+  border:1px solid var(--border);border-radius:8px;font-size:13px;
+  background:var(--bg);transition:border .15s;
+}
+.srch:focus{outline:none;border-color:var(--p);background:var(--white)}
+.hdr-space{flex:1}
+.meta{font-size:11px;color:var(--muted);white-space:nowrap}
+.btn{
+  padding:6px 13px;border-radius:8px;font-size:12px;font-weight:600;
+  cursor:pointer;border:1px solid var(--border);background:var(--white);
+  color:var(--text);text-decoration:none;display:inline-flex;align-items:center;
+  gap:5px;transition:all .15s;white-space:nowrap;
+}
+.btn:hover{background:var(--bg)}
+.btn-p{background:var(--p);color:#fff;border-color:var(--p)}
+.btn-p:hover{background:var(--p-dark);border-color:var(--p-dark)}
+
+/* ── LAYOUT ── */
+.layout{display:flex}
+
+/* ── SIDEBAR ── */
+.sb{
+  width:210px;flex-shrink:0;
+  background:var(--white);border-right:1px solid var(--border);
+  padding:10px 0;
+  position:sticky;top:56px;height:calc(100vh - 56px);overflow-y:auto;
+}
+.sb-hd{padding:8px 16px 4px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--muted)}
+.sb-item{
+  padding:7px 16px;font-size:13px;cursor:pointer;
+  display:flex;justify-content:space-between;align-items:center;
+  transition:background .1s;border-right:3px solid transparent;
+}
+.sb-item:hover{background:var(--bg)}
+.sb-item.on{background:var(--p-bg);color:var(--p);font-weight:600;border-right-color:var(--p)}
+.sb-cnt{font-size:11px;padding:1px 6px;border-radius:20px;background:var(--bg);color:var(--muted)}
+.sb-item.on .sb-cnt{background:#ddd6fe;color:var(--p)}
+.sb-hr{height:1px;background:var(--border);margin:8px 0}
+
+/* ── MAIN ── */
+.main{flex:1;min-width:0;padding:22px}
+
+/* section heading */
+.sec-hd{
+  display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:18px;
+}
+.sec-hd h2{font-size:19px;font-weight:800;letter-spacing:-.4px}
+.sec-cnt{font-size:13px;color:var(--muted)}
+.sec-tools{display:flex;align-items:center;gap:10px}
+.sortSel{padding:6px 10px;border:1px solid var(--border);border-radius:8px;font-size:12px;font-weight:600;background:var(--white);color:var(--text);cursor:pointer}
+.sortSel:focus{outline:none;border-color:var(--p)}
+.rank-badge{display:inline-flex;align-items:center;gap:3px;background:var(--p-bg);color:var(--p);font-size:11px;font-weight:800;padding:2px 8px;border-radius:5px;margin-bottom:7px}
+.rank-num{display:inline-flex;align-items:center;justify-content:center;min-width:18px;height:18px;background:var(--p);color:#fff;border-radius:5px;font-size:10px;font-weight:800;margin-right:4px}
+.del-custom{margin-top:8px;width:100%;padding:5px;border:1px solid var(--border);border-radius:6px;background:none;color:var(--red);font-size:11px;cursor:pointer;font-weight:600;transition:all .15s}
+.del-custom:hover{background:#fef2f2;border-color:var(--red)}
+.bch-custom{background:rgba(109,40,217,.9);color:#fff}
+
+/* product group */
+.pg{margin-bottom:36px}
+.pg-bar{
+  display:flex;align-items:center;gap:10px;
+  padding:9px 14px;margin-bottom:14px;
+  background:var(--white);border-radius:var(--r);
+  border-left:4px solid var(--p);box-shadow:var(--sh);
+}
+.pg-name{font-size:14px;font-weight:700}
+.pg-sub{font-size:12px;color:var(--muted)}
+
+/* ── GRID ── */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(258px,1fr));gap:14px}
+
+/* ── CARD ── */
+.card{
+  background:var(--white);border-radius:var(--r);overflow:hidden;
+  box-shadow:var(--sh);transition:transform .18s,box-shadow .18s;
+}
+.card:hover{transform:translateY(-2px);box-shadow:var(--sh2)}
+
+/* thumb */
+.thumb{position:relative;width:100%;aspect-ratio:16/9;background:#f0f0f2;overflow:hidden}
+.thumb img{width:100%;height:100%;object-fit:cover;display:block}
+.no-thumb{
+  width:100%;height:100%;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:6px;color:var(--muted);
+}
+.no-thumb .ic{font-size:30px}
+.no-thumb .lb{font-size:11px}
+
+.bpos{position:absolute}
+.bpos.tl{top:7px;left:7px}
+.bpos.tr{top:7px;right:7px}
+.bpos.bl{bottom:7px;left:7px}
+.bpos.br{bottom:7px;right:7px}
+
+.bch{
+  padding:2px 7px;border-radius:5px;font-size:10px;font-weight:700;
+  backdrop-filter:blur(4px);line-height:1.5;
+}
+.bch-multi{background:rgba(217,119,6,.88);color:#fff}
+.bch-type{background:rgba(0,0,0,.6);color:#fff}
+.bch-pub{background:rgba(22,163,74,.88);color:#fff}
+.bch-wait{background:rgba(120,120,120,.75);color:#fff}
+
+/* body */
+.cb{padding:12px}
+.ctitle{font-size:13px;font-weight:700;line-height:1.45;margin-bottom:8px;word-break:break-word}
+
+.tags{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:8px}
+.tag{
+  padding:2px 8px;border-radius:5px;font-size:10px;font-weight:600;
+  cursor:pointer;transition:background .1s;
+}
+.tag-p{background:var(--p-bg);color:var(--p)}
+.tag-p:hover{background:#ddd6fe}
+
+.note{font-size:11px;color:var(--muted);margin-bottom:8px;line-height:1.4;word-break:break-word}
+
+.links{display:flex;flex-direction:column;gap:5px;margin-bottom:10px}
+.lrow{display:flex;flex-wrap:wrap;gap:5px;align-items:center}
+.lb-yt-add{background:none;border:1.5px dashed #e50000;color:#e50000;cursor:pointer;font-size:11px;font-weight:700;padding:4px 9px;border-radius:6px;display:inline-flex;align-items:center;gap:3px;transition:all .15s}
+.lb-yt-add:hover{background:#fff0f0}
+.lb-btn{
+  display:inline-flex;align-items:center;gap:3px;
+  padding:4px 9px;border-radius:6px;font-size:11px;font-weight:700;
+  color:#fff;text-decoration:none;transition:opacity .15s;
+}
+.lb-btn:hover{opacity:.8}
+.lb-yt{background:#e50000}
+.lb-ig-sg{background:#d6249f}
+.lb-ig-my{background:#cc0001}
+.lb-ig-gl{background:#7928ca}
+.lb-db{background:#0061fe}
+.ledit{
+  padding:4px 9px;border-radius:6px;font-size:11px;font-weight:600;
+  cursor:pointer;border:1.5px dashed var(--border);background:none;
+  color:var(--muted);transition:all .15s;
+}
+.ledit:hover{border-color:var(--p);color:var(--p);background:var(--p-bg)}
+
+/* per-channel inline stats */
+.ch-stats{padding-top:9px;border-top:1px solid var(--border);display:flex;flex-direction:column;gap:4px}
+.ch-row{display:flex;align-items:center;gap:5px}
+.ch-ico{min-width:50px;font-size:10px;font-weight:700}
+.sval{width:70px;padding:2px 6px;border:1px solid var(--border);border-radius:4px;font-size:11px;background:var(--bg);color:var(--text);transition:border .12s}
+.sval:focus{outline:none;border-color:var(--p);background:var(--white)}
+.sval::placeholder{color:#d0d0d5}
+.sval-c{width:56px}
+.ch-dot{font-size:10px;color:var(--border)}
+.auto-stat{font-size:11px;color:var(--text);display:inline-flex;align-items:center;gap:2px}
+.auto-stat b{font-weight:700}
+.auto-badge{font-size:9px;color:var(--green);font-weight:700;margin-left:auto}
+
+/* ── MODAL ── */
+.overlay{
+  position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:200;
+  display:none;align-items:center;justify-content:center;
+}
+.overlay.on{display:flex}
+.modal{
+  background:var(--white);border-radius:var(--r);padding:24px;
+  width:380px;max-width:calc(100vw - 32px);
+  box-shadow:0 12px 48px rgba(0,0,0,.22);
+}
+.modal h3{font-size:16px;font-weight:800;margin-bottom:4px}
+.modal .sub{font-size:12px;color:var(--muted);margin-bottom:18px;line-height:1.5;word-break:break-word}
+.field{margin-bottom:12px}
+.field label{display:block;font-size:12px;color:var(--muted);font-weight:600;margin-bottom:4px}
+.field input{
+  width:100%;padding:8px 10px;border:1px solid var(--border);
+  border-radius:7px;font-size:13px;transition:border .15s;
+}
+.field input:focus{outline:none;border-color:var(--p)}
+.mfooter{display:flex;justify-content:flex-end;gap:8px;margin-top:16px}
+.myt-link{
+  display:inline-flex;align-items:center;gap:5px;
+  font-size:12px;color:var(--red);text-decoration:none;
+  margin-bottom:14px;font-weight:600;
+}
+.myt-link:hover{opacity:.75}
+
+/* ── LOADING / EMPTY ── */
+.ph{
+  grid-column:1/-1;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;padding:70px;
+  color:var(--muted);gap:12px;
+}
+.spin{
+  width:34px;height:34px;border:3px solid var(--border);
+  border-top-color:var(--p);border-radius:50%;
+  animation:spin .7s linear infinite;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ── SUMMARY BAR ── */
+.sbar{
+  display:flex;gap:12px;margin-bottom:20px;flex-wrap:wrap;
+}
+.sc{
+  background:var(--white);border-radius:var(--r);padding:14px 18px;
+  flex:1;min-width:140px;box-shadow:var(--sh);
+  display:flex;flex-direction:column;gap:3px;
+}
+.sc-num{font-size:22px;font-weight:800;color:var(--p)}
+.sc-lbl{font-size:12px;color:var(--muted)}
+
+/* ── VIDEO PLAYER ── */
+.pv-shell{background:#111;border-radius:var(--r);overflow:hidden;width:min(720px,96vw);box-shadow:0 20px 60px rgba(0,0,0,.6)}
+.pv-wrap{position:relative;width:100%;aspect-ratio:16/9;background:#000}
+.pv-wrap iframe,.pv-wrap video{position:absolute;inset:0;width:100%;height:100%;border:0;display:block}
+.pv-bar{padding:8px 12px;display:flex;justify-content:space-between;align-items:center;background:#1a1a1a}
+.pv-ext{font-size:11px;color:#aaa;text-decoration:none;transition:color .15s}
+.pv-ext:hover{color:#fff}
+
+@media(max-width:680px){
+  .sb{display:none}
+  .main{padding:12px}
+  .sbar{gap:8px}
+  .sc{padding:10px 14px;min-width:100px}
+}
+</style>
+</head>
+<body>
+
+<!-- ── HEADER ── -->
+<header class="hdr">
+  <div class="logo">🎬 JB Contents</div>
+  <div class="srch-wrap">
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+    <input class="srch" type="text" id="srch" placeholder="영상 제목, 상품명 검색…">
+  </div>
+  <div class="hdr-space"></div>
+  <div class="meta" id="meta"></div>
+  <button class="btn" id="btnAdd" onclick="openAdd()">➕ 영상 등록</button>
+  <button class="btn" id="btnBackup" onclick="openBk()">💾 백업</button>
+  <button class="btn" id="btnYT" onclick="openYT()">📊 YT 통계</button>
+  <a class="btn" id="btnSheet" href="https://docs.google.com/spreadsheets/d/1p1RT3Jdy1NBWbR2pIaXn0VJxQrh6v4kokMNajO_yrlc/edit" target="_blank">📝 시트 편집</a>
+  <button class="btn btn-p" id="btnRefresh" onclick="init()">🔄 새로고침</button>
+  <button class="btn" id="langToggleBtn" onclick="toggleLang()" style="font-weight:700;min-width:34px">EN</button>
+</header>
+
+<div class="layout">
+  <!-- ── SIDEBAR ── -->
+  <aside class="sb" id="sb"></aside>
+
+  <!-- ── MAIN ── -->
+  <main class="main">
+    <!-- Summary bar -->
+    <div class="sbar" id="sbar" style="display:none"></div>
+
+    <!-- Section heading -->
+    <div class="sec-hd">
+      <h2 id="secTitle">전체 콘텐츠</h2>
+      <div class="sec-tools">
+        <select class="sortSel" id="sortSel" onchange="setSort(this.value)">
+          <option value="default">📋 기본 순서</option>
+          <option value="views">👁 조회수 높은 순</option>
+          <option value="comments">💬 댓글 높은 순</option>
+          <option value="score">🏆 종합 점수 순 (뷰+좋아요×3+댓글×5)</option>
+        </select>
+        <span class="sec-cnt" id="secCnt"></span>
+      </div>
+    </div>
+
+    <!-- Dynamic content -->
+    <div id="ct">
+      <div class="grid"><div class="ph"><div class="spin"></div><div>데이터 불러오는 중…</div></div></div>
+    </div>
+  </main>
+</div>
+
+<!-- ── ADD VIDEO MODAL ── -->
+<div class="overlay" id="addov">
+  <div class="modal" style="width:460px">
+    <h3 id="addTitle">➕ 영상 등록</h3>
+    <div class="sub" id="addSub">새 콘텐츠를 <b>구글 시트</b>에 추가합니다 → 팀 전체에 공유됩니다.</div>
+    <div id="addWebappRow">
+      <div class="field"><label>🔗 웹앱 URL <span style="font-weight:400">(최초 1회만 입력하면 저장됨)</span></label><input id="aWebapp" placeholder="https://script.google.com/.../exec"></div>
+      <div style="height:1px;background:var(--border);margin:4px 0 12px"></div>
+    </div>
+    <div class="field"><label>📦 상품명 * <span style="font-weight:400">(여러 개는 콤마로 구분)</span></label><input id="aProd" placeholder="예: CO2 Mask, Ampoule"></div>
+    <div class="field"><label>📝 제목 *</label><input id="aTitle" placeholder="영상 제목"></div>
+    <div class="field"><label>🎬 타입</label><input id="aType" placeholder="예: Video, Image, Short"></div>
+    <div class="field"><label>💬 메모</label><input id="aNote" placeholder="비고 (선택)"></div>
+    <div style="height:1px;background:var(--border);margin:4px 0 12px"></div>
+    <div class="field"><label style="color:#0061fe">📦 드랍박스 (Dropbox)</label><input id="aDB" placeholder="https://www.dropbox.com/..."></div>
+    <div class="field"><label style="color:#d6249f">📷 싱가폴 인스타 (IG SG)</label><input id="aSG" placeholder="https://www.instagram.com/reel/..."></div>
+    <div class="field"><label style="color:#e50000">▶ 유튜브 (YouTube)</label><input id="aYT" placeholder="https://youtube.com/shorts/..."></div>
+    <div class="field"><label style="color:#cc0001">📷 말레이시아 인스타 (IG MY)</label><input id="aMY" placeholder="https://www.instagram.com/reel/..."></div>
+    <div class="field"><label style="color:#7928ca">🌍 글로벌 인스타 (IG Global)</label><input id="aGL" placeholder="https://www.instagram.com/reel/..."></div>
+    <div class="mfooter">
+      <button class="btn" id="addDelBtn" onclick="deleteFromModal()" style="display:none;margin-right:auto;color:var(--red);border-color:var(--red)">🗑 삭제</button>
+      <button class="btn" onclick="closeAdd()">취소</button>
+      <button class="btn btn-p" id="addSaveBtn" onclick="saveAdd()">등록</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── BACKUP / RESTORE MODAL ── -->
+<div class="overlay" id="bkov">
+  <div class="modal">
+    <h3>💾 백업 / 복원</h3>
+    <div class="sub">등록한 영상·통계·링크 데이터를 JSON 파일로 백업하거나 복원합니다. (구글시트 원본 데이터는 시트에 있으므로 제외)</div>
+    <button class="btn btn-p" style="width:100%;margin-bottom:8px;justify-content:center" onclick="exportData()">⬇ JSON으로 내보내기 (백업)</button>
+    <label class="btn" style="width:100%;justify-content:center;cursor:pointer">
+      ⬆ JSON 가져오기 (복원)
+      <input type="file" accept="application/json" style="display:none" onchange="importData(this.files[0])">
+    </label>
+    <div id="bkMsg" style="font-size:11px;color:var(--muted);margin-top:10px;line-height:1.5"></div>
+    <div class="mfooter"><button class="btn" onclick="closeBk()">닫기</button></div>
+  </div>
+</div>
+
+<!-- ── YOUTUBE STATS SETTINGS MODAL ── -->
+<div class="overlay" id="ytov">
+  <div class="modal">
+    <h3>📊 YouTube 통계 자동화</h3>
+    <div class="sub">YouTube Data API 키를 입력하면 영상별 조회수·좋아요·댓글 수를 자동으로 불러옵니다. 키는 이 브라우저에만 저장됩니다.</div>
+    <div class="field">
+      <label>🔑 YouTube Data API 키</label>
+      <input id="ytKey" placeholder="AIza...">
+    </div>
+    <div id="ytMsg" style="font-size:11px;color:var(--muted);margin-bottom:8px"></div>
+    <div class="mfooter">
+      <button class="btn" onclick="closeYT()">취소</button>
+      <button class="btn btn-p" onclick="saveYT()">저장 &amp; 불러오기</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── VIDEO PLAYER MODAL ── -->
+<div class="overlay" id="pvov">
+  <div class="pv-shell">
+    <div class="pv-wrap" id="pvContent"></div>
+    <div class="pv-bar">
+      <a id="pvExt" href="#" target="_blank" class="pv-ext">↗ 외부에서 열기</a>
+      <button class="btn" id="pvClose" onclick="closePlayer()">✕ 닫기</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── LINK EDIT MODAL ── -->
+<div class="overlay" id="lov">
+  <div class="modal" style="width:440px">
+    <h3>✏️ 에디트 — 링크</h3>
+    <div class="sub" id="lSub"></div>
+    <div class="field">
+      <label style="color:#0061fe">📦 드랍박스 (Dropbox)</label>
+      <input id="lDB" placeholder="https://www.dropbox.com/...">
+    </div>
+    <div class="field">
+      <label style="color:#d6249f">📷 싱가폴 인스타 (IG SG)</label>
+      <input id="lSG" placeholder="https://www.instagram.com/reel/...">
+    </div>
+    <div class="field">
+      <label style="color:#e50000">▶ 유튜브 (YouTube)</label>
+      <input id="lYT" placeholder="https://youtube.com/shorts/...">
+    </div>
+    <div style="height:1px;background:var(--border);margin:4px 0 12px"></div>
+    <div class="field">
+      <label style="color:#cc0001">📷 말레이시아 인스타 (IG MY)</label>
+      <input id="lMY" placeholder="https://www.instagram.com/reel/...">
+    </div>
+    <div class="field">
+      <label style="color:#7928ca">🌍 글로벌 인스타 (IG Global)</label>
+      <input id="lGL" placeholder="https://www.instagram.com/reel/...">
+    </div>
+    <div class="mfooter">
+      <button class="btn" onclick="closeLinkModal()">취소</button>
+      <button class="btn btn-p" onclick="saveLinks()">저장</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ═══════════════════════════════════════════
+   LANGUAGE
+═══════════════════════════════════════════ */
+let LANG = localStorage.getItem('jb_lang') || 'kr';
+function t(kr, en) { return LANG === 'en' ? en : kr; }
+function toggleLang() {
+  LANG = LANG === 'kr' ? 'en' : 'kr';
+  localStorage.setItem('jb_lang', LANG);
+  applyLang();
+  buildSidebar();
+  buildSummary();
+  render();
+}
+function applyLang() {
+  document.getElementById('langToggleBtn').textContent = LANG === 'kr' ? 'EN' : '한';
+  document.getElementById('srch').placeholder = t('영상 제목, 상품명 검색…', 'Search title, product…');
+  document.getElementById('btnAdd').textContent    = t('➕ 영상 등록', '➕ Add Video');
+  document.getElementById('btnBackup').textContent = t('💾 백업', '💾 Backup');
+  document.getElementById('btnYT').textContent     = t('📊 YT 통계', '📊 YT Stats');
+  document.getElementById('btnSheet').textContent  = t('📝 시트 편집', '📝 Sheet');
+  document.getElementById('btnRefresh').textContent = t('🔄 새로고침', '🔄 Refresh');
+  // sort dropdown
+  const sel = document.getElementById('sortSel');
+  if (sel) {
+    const opts = [
+      t('📋 기본 순서', '📋 Default'),
+      t('👁 조회수 높은 순', '👁 Most Views'),
+      t('💬 댓글 높은 순', '💬 Most Comments'),
+      t('🏆 종합 점수 순 (뷰+좋아요×3+댓글×5)', '🏆 Top Score')
+    ];
+    [...sel.options].forEach((o, i) => { if (opts[i]) o.text = opts[i]; });
+  }
+  // player modal
+  const pvExt   = document.getElementById('pvExt');
+  const pvClose = document.getElementById('pvClose');
+  if (pvExt)   pvExt.textContent   = t('↗ 외부에서 열기', '↗ Open externally');
+  if (pvClose) pvClose.textContent = t('✕ 닫기', '✕ Close');
+  // add modal static texts
+  const addTitle  = document.getElementById('addTitle');
+  const addSaveBtn = document.getElementById('addSaveBtn');
+  if (addTitle && typeof EDIT_MODE !== 'undefined') {
+    if (EDIT_MODE === 'edit') {
+      addTitle.textContent  = t('✏️ 항목 수정', '✏️ Edit Video');
+      addSaveBtn.textContent = t('수정 저장', 'Update');
+    } else {
+      addTitle.textContent  = t('➕ 영상 등록', '➕ Add Video');
+      addSaveBtn.textContent = t('등록', 'Save');
+    }
+  }
+  const addSubEl = document.getElementById('addSub');
+  if (addSubEl && EDIT_MODE === 'add') {
+    addSubEl.innerHTML = t('새 콘텐츠를 <b>구글 시트</b>에 추가합니다 → 팀 전체에 공유됩니다.', 'Add new content to <b>Google Sheet</b> — shared with the team.');
+  }
+  // add modal field labels & placeholders
+  const addWebappLabel = document.querySelector('label[for="aWebapp"],#addWebappRow label');
+  if (addWebappLabel) addWebappLabel.innerHTML = t('🔗 웹앱 URL <span style="font-weight:400">(최초 1회만 입력하면 저장됨)</span>', '🔗 Web App URL <span style="font-weight:400">(saved after first entry)</span>');
+  const aProdLabel = document.querySelector('#addov label[for="aProd"],#addov .field:has(#aProd) label');
+  if (!aProdLabel) {
+    // fallback: find by text content near aProd
+    document.querySelectorAll('#addov .field label').forEach(lbl => {
+      if (lbl.textContent.includes('상품명') || lbl.textContent.includes('Product')) {
+        lbl.innerHTML = t('📦 상품명 * <span style="font-weight:400">(여러 개는 콤마로 구분)</span>', '📦 Product * <span style="font-weight:400">(comma-separated)</span>');
+      }
+    });
+  }
+  const aTitleLabel = document.querySelector('#addov .field:has(#aTitle) label');
+  if (aTitleLabel) aTitleLabel.textContent = t('📝 제목 *', '📝 Title *');
+  const aTypeLabel = document.querySelector('#addov .field:has(#aType) label');
+  if (aTypeLabel) aTypeLabel.textContent = t('🎬 타입', '🎬 Type');
+  const aNoteLabel = document.querySelector('#addov .field:has(#aNote) label');
+  if (aNoteLabel) aNoteLabel.textContent = t('💬 메모', '💬 Note');
+  // add modal link labels
+  const aDBLabel = document.querySelector('#addov .field:has(#aDB) label');
+  if (aDBLabel) aDBLabel.textContent = t('📦 드랍박스 (Dropbox)', '📦 Dropbox');
+  const aSGLabel = document.querySelector('#addov .field:has(#aSG) label');
+  if (aSGLabel) aSGLabel.textContent = t('📷 싱가폴 인스타 (IG SG)', '📷 Instagram SG');
+  const aYTLabel = document.querySelector('#addov .field:has(#aYT) label');
+  if (aYTLabel) aYTLabel.textContent = t('▶ 유튜브 (YouTube)', '▶ YouTube');
+  const aMYLabel = document.querySelector('#addov .field:has(#aMY) label');
+  if (aMYLabel) aMYLabel.textContent = t('📷 말레이시아 인스타 (IG MY)', '📷 Instagram MY');
+  const aGLLabel = document.querySelector('#addov .field:has(#aGL) label');
+  if (aGLLabel) aGLLabel.textContent = t('🌍 글로벌 인스타 (IG Global)', '🌍 Instagram Global');
+  // add modal buttons
+  document.querySelectorAll('#addov .mfooter .btn:not(.btn-p):not(#addDelBtn)').forEach(btn => {
+    if (!btn.id) btn.textContent = t('취소', 'Cancel');
+  });
+  const addDelBtn = document.getElementById('addDelBtn');
+  if (addDelBtn) addDelBtn.textContent = t('🗑 삭제', '🗑 Delete');
+  // backup modal
+  const bkH3 = document.querySelector('#bkov .modal h3');
+  if (bkH3) bkH3.textContent = t('💾 백업 / 복원', '💾 Backup / Restore');
+  document.querySelectorAll('#bkov .btn').forEach(btn => {
+    if (btn.classList.contains('btn-p') && btn.getAttribute('onclick') === 'exportData()') {
+      btn.textContent = t('⬇ JSON으로 내보내기 (백업)', '⬇ Export JSON');
+    }
+    if (!btn.classList.contains('btn-p') && btn.getAttribute('onclick') === 'closeBk()') {
+      btn.textContent = t('닫기', 'Close');
+    }
+  });
+  const bkImportLabel = document.querySelector('#bkov label.btn');
+  if (bkImportLabel) {
+    const inp = bkImportLabel.querySelector('input[type="file"]');
+    bkImportLabel.textContent = t('⬆ JSON 가져오기 (복원)', '⬆ Import JSON');
+    if (inp) bkImportLabel.appendChild(inp);
+  }
+  // YT stats modal
+  const ytH3 = document.querySelector('#ytov .modal h3');
+  if (ytH3) ytH3.textContent = t('📊 YouTube 통계 자동화', '📊 YouTube Stats');
+  document.querySelectorAll('#ytov .mfooter .btn').forEach(btn => {
+    if (btn.getAttribute('onclick') === 'closeYT()') btn.textContent = t('취소', 'Cancel');
+    if (btn.getAttribute('onclick') === 'saveYT()') btn.textContent = t('저장 & 불러오기', 'Save & Fetch');
+  });
+  // link edit modal
+  const lovH3 = document.querySelector('#lov .modal h3');
+  if (lovH3) lovH3.textContent = t('✏️ 에디트 — 링크', '✏️ Edit Links');
+  document.querySelectorAll('#lov .mfooter .btn').forEach(btn => {
+    if (btn.getAttribute('onclick') === 'closeLinkModal()') btn.textContent = t('취소', 'Cancel');
+    if (btn.getAttribute('onclick') === 'saveLinks()') btn.textContent = t('저장', 'Save');
+  });
+  // link edit modal field labels
+  const lDBLabel = document.querySelector('#lov .field:has(#lDB) label');
+  if (lDBLabel) lDBLabel.textContent = t('📦 드랍박스 (Dropbox)', '📦 Dropbox');
+  const lSGLabel = document.querySelector('#lov .field:has(#lSG) label');
+  if (lSGLabel) lSGLabel.textContent = t('📷 싱가폴 인스타 (IG SG)', '📷 Instagram SG');
+  const lYTLabel = document.querySelector('#lov .field:has(#lYT) label');
+  if (lYTLabel) lYTLabel.textContent = t('▶ 유튜브 (YouTube)', '▶ YouTube');
+  const lMYLabel = document.querySelector('#lov .field:has(#lMY) label');
+  if (lMYLabel) lMYLabel.textContent = t('📷 말레이시아 인스타 (IG MY)', '📷 Instagram MY');
+  const lGLLabel = document.querySelector('#lov .field:has(#lGL) label');
+  if (lGLLabel) lGLLabel.textContent = t('🌍 글로벌 인스타 (IG Global)', '🌍 Instagram Global');
+}
+
+/* ═══════════════════════════════════════════
+   CONFIG & STATE
+═══════════════════════════════════════════ */
+const SID   = '1p1RT3Jdy1NBWbR2pIaXn0VJxQrh6v4kokMNajO_yrlc';
+const SNAME = 'Contentes';
+let DATA = [], ACTIVE = 'all', LID = null, YT_STATS = {}, SORT = 'default';
+let EDIT_MODE = 'add', EDIT_TARGET = null;   // 등록/수정 모달 상태
+
+/* ═══════════════════════════════════════════
+   FETCH & PARSE
+═══════════════════════════════════════════ */
+async function init() {
+  setCT('<div class="grid"><div class="ph"><div class="spin"></div><div>데이터 불러오는 중…</div></div></div>');
+  document.getElementById('sbar').style.display = 'none';
+  try {
+    const url  = `https://docs.google.com/spreadsheets/d/${SID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(SNAME)}&t=${Date.now()}`;
+    const text = await fetch(url).then(r => r.text());
+    const json = JSON.parse(text.replace(/^[\s\S]*?setResponse\(/, '').replace(/\);\s*$/, ''));
+    DATA = parseSheet(json).concat(loadCustom());
+    document.getElementById('meta').textContent = '마지막 업데이트: ' + new Date().toLocaleTimeString('ko-KR');
+    buildSidebar();
+    buildSummary();
+    render();
+    applyLang();
+    fetchYTStats();  // API 키 있으면 YouTube 통계 자동 로드
+  } catch (e) {
+    setCT(`<div class="grid"><div class="ph"><div style="font-size:36px">⚠️</div><div>${e.message}</div><div style="font-size:11px;color:var(--muted)">시트가 공개 설정인지 확인해 주세요</div></div></div>`);
+  }
+}
+
+function parseSheet(json) {
+  return json.table.rows.map((row, idx) => {
+    const g = i => { const c = row.c && row.c[i]; return (c && c.v != null) ? String(c.v).trim() : ''; };
+    const prodRaw  = g(1);
+    const content  = g(3);
+    const ytRaw    = g(7);
+    const igSG     = g(6);
+    const igMY     = g(8);
+    const igGlobal = g(9);
+    const dbLink   = g(10);  // K열 — Apps Script로 추출한 Dropbox 링크
+
+    if (!prodRaw && !content && !ytRaw && !igSG && !igGlobal) return null;
+
+    // Parse products (comma or newline separated)
+    const products = prodRaw
+      ? prodRaw.split(/[,\n]/).map(s => s.trim()).filter(Boolean)
+      : [];
+
+    // Parse YouTube links (may be multiple lines in one cell)
+    const ytLinks = ytRaw
+      ? ytRaw.split(/\n/).map(l => l.trim()).filter(l => l.match(/youtube|youtu\.be/i) && l !== 'X')
+      : [];
+
+    const ytId  = ytLinks.length ? getYTId(ytLinks[0]) : null;
+    const hasLink = (ytLinks.length > 0) || (igSG && igSG !== 'X') || (igGlobal && igGlobal !== 'X');
+
+    // Detect Dropbox link in Content field
+    const isDropbox = content.includes('dropbox.com');
+
+    return {
+      id       : 'r' + idx,
+      sheetRow : idx + 2,   // 실제 시트 행번호 (헤더 1행 + 0-base)
+      no       : g(0),
+      products,
+      category : g(2),
+      content  : isDropbox ? ('(영상 파일) 행 ' + (idx + 2)) : content,
+      rawContent: content,
+      type     : g(4),
+      note     : g(5),
+      igSG     : igSG !== 'X' ? igSG : '',
+      igMY     : igMY !== 'X' ? igMY : '',
+      ytLinks,
+      igGlobal : igGlobal !== 'X' ? igGlobal : '',
+      dbLink   : dbLink !== 'X' ? dbLink : '',
+      ytId,
+      hasLink,
+      isDropbox,
+      isMulti  : products.length > 1
+    };
+  }).filter(Boolean);
+}
+
+function getYTId(url) {
+  if (!url) return null;
+  const m = url.match(/shorts\/([a-zA-Z0-9_-]{6,})/) || url.match(/[?&]v=([a-zA-Z0-9_-]{6,})/);
+  return m ? m[1] : null;
+}
+
+/* ═══════════════════════════════════════════
+   CUSTOM ITEMS (직접 등록 — localStorage)
+═══════════════════════════════════════════ */
+function getCustomRaw() {
+  try { return JSON.parse(localStorage.getItem('jb_custom')) || []; } catch { return []; }
+}
+
+function buildCustomItem(f) {
+  const products = f.products ? f.products.split(/[,\n]/).map(s => s.trim()).filter(Boolean) : [];
+  const ytLinks  = f.yt ? [f.yt] : [];
+  const hasLink  = !!(f.yt || f.sg || f.gl || f.my || f.db);
+  return {
+    id: f.id, no: '', products, category: '',
+    content: f.content, rawContent: f.content,
+    type: f.type || '', note: f.note || '',
+    igSG: f.sg || '', igMY: f.my || '',
+    ytLinks, igGlobal: f.gl || '', dbLink: f.db || '',
+    ytId: f.yt ? getYTId(f.yt) : null,
+    hasLink, isDropbox: false,
+    isMulti: products.length > 1,
+    isCustom: true
+  };
+}
+
+function loadCustom() { return getCustomRaw().map(buildCustomItem); }
+
+function deleteCustom(id) {
+  localStorage.setItem('jb_custom', JSON.stringify(getCustomRaw().filter(x => x.id !== id)));
+  localStorage.removeItem('jbs_' + id);
+  localStorage.removeItem('jbl_' + id);
+  init();
+}
+
+/* ── 등록 모달 ── */
+const ADD_FIELDS = ['aProd','aTitle','aType','aNote','aDB','aSG','aYT','aMY','aGL'];
+function openAdd() {
+  EDIT_MODE = 'add'; EDIT_TARGET = null;
+  ADD_FIELDS.forEach(id => document.getElementById(id).value = '');
+  const savedUrl = localStorage.getItem('jb_webapp_url') || '';
+  document.getElementById('aWebapp').value = savedUrl;
+  document.getElementById('addTitle').textContent = t('➕ 영상 등록', '➕ Add Video');
+  document.getElementById('addSub').innerHTML = t('새 콘텐츠를 <b>구글 시트</b>에 추가합니다 → 팀 전체에 공유됩니다.', 'Add new content to <b>Google Sheet</b> — shared with the team.');
+  document.getElementById('addSaveBtn').textContent = t('등록', 'Save');
+  document.getElementById('addWebappRow').style.display = savedUrl ? 'none' : 'block';
+  document.getElementById('addDelBtn').style.display = 'none';
+  document.getElementById('addov').classList.add('on');
+  document.getElementById(savedUrl ? 'aProd' : 'aWebapp').focus();
+}
+
+function openEdit(id) {
+  const d = DATA.find(x => x.id === id);
+  if (!d) return;
+  if (!localStorage.getItem('jb_webapp_url')) {
+    alert('먼저 ➕ 영상 등록에서 웹앱 URL을 1회 입력해 주세요.'); return;
+  }
+  EDIT_MODE = 'edit';
+  EDIT_TARGET = { id: d.id, row: d.sheetRow, title: d.rawContent || d.content };
+  const ml = getMergedLinks(d);
+  document.getElementById('aProd').value  = d.products.join(', ');
+  document.getElementById('aTitle').value = d.rawContent || d.content;
+  document.getElementById('aType').value  = d.type || '';
+  document.getElementById('aNote').value  = d.note || '';
+  document.getElementById('aDB').value    = ml.db || '';
+  document.getElementById('aSG').value    = ml.sg || '';
+  document.getElementById('aYT').value    = ml.yt || '';
+  document.getElementById('aMY').value    = ml.my || '';
+  document.getElementById('aGL').value    = ml.gl || '';
+  document.getElementById('addTitle').textContent = t('✏️ 항목 수정', '✏️ Edit Video');
+  document.getElementById('addSub').innerHTML = t('구글 시트의 이 항목을 수정합니다 → 팀 전체에 반영됩니다.', 'Update this item in Google Sheet — changes apply to the whole team.');
+  document.getElementById('addSaveBtn').textContent = t('수정 저장', 'Update');
+  document.getElementById('addWebappRow').style.display = 'none';
+  document.getElementById('addDelBtn').style.display = 'inline-flex';
+  document.getElementById('addov').classList.add('on');
+  document.getElementById('aProd').focus();
+}
+function closeAdd() { document.getElementById('addov').classList.remove('on'); }
+
+function deleteFromModal() {
+  if (EDIT_TARGET) { const id = EDIT_TARGET.id; closeAdd(); deleteItem(id); }
+}
+function saveAdd() {
+  const prod  = document.getElementById('aProd').value.trim();
+  const title = document.getElementById('aTitle').value.trim();
+  if (!prod || !title) { alert('상품명과 제목은 필수입니다.'); return; }
+
+  let webapp = localStorage.getItem('jb_webapp_url') || '';
+  if (EDIT_MODE === 'add') {
+    const typed = document.getElementById('aWebapp').value.trim();
+    if (!typed) { alert('맨 위 칸에 웹앱 URL을 입력하세요.\n한 번만 입력하면 다음부터 자동 저장됩니다.'); return; }
+    webapp = typed;
+    localStorage.setItem('jb_webapp_url', webapp);
+  }
+  if (!webapp) { alert('웹앱 URL이 없습니다.'); return; }
+
+  const fields = {
+    products: prod, content: title,
+    type: document.getElementById('aType').value.trim(),
+    note: document.getElementById('aNote').value.trim(),
+    db: document.getElementById('aDB').value.trim(),
+    sg: document.getElementById('aSG').value.trim(),
+    yt: document.getElementById('aYT').value.trim(),
+    my: document.getElementById('aMY').value.trim(),
+    gl: document.getElementById('aGL').value.trim()
+  };
+
+  let payload;
+  if (EDIT_MODE === 'edit' && EDIT_TARGET) {
+    payload = { action: 'update', row: EDIT_TARGET.row, expectTitle: EDIT_TARGET.title, ...fields };
+    localStorage.removeItem('jbl_' + EDIT_TARGET.id);   // 로컬 링크 오버라이드 제거 → 시트값 우선
+  } else {
+    payload = { action: 'add', ...fields };
+  }
+
+  const verb = EDIT_MODE === 'edit' ? '수정' : '등록';
+  closeAdd();
+  setCT(`<div class="grid"><div class="ph"><div class="spin"></div><div>구글 시트에 ${verb} 중…</div></div></div>`);
+
+  fetch(webapp, { method: 'POST', body: JSON.stringify(payload), redirect: 'follow' })
+    .then(r => r.json())
+    .then(json => {
+      if (!json.ok) { alert(`${verb} 실패: ${json.error || '알 수 없는 오류'}`); init(); return; }
+      pollForNew(title, 0);
+    })
+    .catch(err => { alert(`전송 오류: ${err.message}\n웹앱 URL을 확인해 주세요.`); init(); });
+}
+
+/* 시트 항목 삭제 */
+function deleteItem(id) {
+  const d = DATA.find(x => x.id === id);
+  if (!d) return;
+  const webapp = localStorage.getItem('jb_webapp_url');
+  if (!webapp) { alert('먼저 ➕ 영상 등록에서 웹앱 URL을 1회 입력해 주세요.'); return; }
+  if (!confirm(`"${d.content}"\n이 항목을 구글 시트에서 삭제할까요? (팀 전체에 반영됩니다)`)) return;
+
+  const payload = { action: 'delete', row: d.sheetRow, expectTitle: d.rawContent || d.content };
+
+  localStorage.removeItem('jbs_' + d.id);
+  localStorage.removeItem('jbl_' + d.id);
+  setCT('<div class="grid"><div class="ph"><div class="spin"></div><div>구글 시트에서 삭제 중…</div></div></div>');
+
+  fetch(webapp, { method: 'POST', body: JSON.stringify(payload), redirect: 'follow' })
+    .then(r => r.json())
+    .then(json => {
+      if (!json.ok) { alert(`삭제 실패: ${json.error || '알 수 없는 오류'}${json.current ? '\n현재값: ' + json.current : ''}`); init(); return; }
+      pollForGone(d.content, 0);
+    })
+    .catch(err => { alert(`전송 오류: ${err.message}\n웹앱 URL을 확인해 주세요.`); init(); });
+}
+
+/* 삭제 반영 폴링 (사라질 때까지) */
+function pollForGone(title, tries) {
+  init();
+  setTimeout(() => {
+    if (!DATA.some(d => d.content === title)) return;   // 사라짐 = 완료
+    if (tries < 8) pollForGone(title, tries + 1);
+  }, 4000);
+}
+
+/* 등록 직후 gviz 캐시 지연 대응 — 새 항목이 보일 때까지 재시도 */
+function pollForNew(title, tries) {
+  init();
+  setTimeout(() => {
+    if (DATA.some(d => d.content === title)) return;   // 반영 완료
+    if (tries < 8) pollForNew(title, tries + 1);        // 최대 ~36초
+  }, 4000);
+}
+
+/* ═══════════════════════════════════════════
+   BACKUP / RESTORE (JSON)
+═══════════════════════════════════════════ */
+function openBk() { document.getElementById('bkMsg').textContent = ''; document.getElementById('bkov').classList.add('on'); }
+function closeBk() { document.getElementById('bkov').classList.remove('on'); }
+
+function exportData() {
+  const data = { _meta: { app: 'JB Contents Dashboard', exported: new Date().toISOString() }, custom: getCustomRaw(), stats: {}, links: {} };
+  for (let i = 0; i < localStorage.length; i++) {
+    const k = localStorage.key(i);
+    if (k.startsWith('jbs_'))      data.stats[k] = localStorage.getItem(k);
+    else if (k.startsWith('jbl_')) data.links[k] = localStorage.getItem(k);
+  }
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'jb_dashboard_backup_' + new Date().toISOString().slice(0,10) + '.json';
+  a.click();
+  URL.revokeObjectURL(a.href);
+  document.getElementById('bkMsg').textContent =
+    `✅ 내보내기 완료 — 등록 ${data.custom.length}개 · 통계 ${Object.keys(data.stats).length}개 · 링크 ${Object.keys(data.links).length}개`;
+}
+
+function importData(file) {
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const data = JSON.parse(e.target.result);
+      if (data.custom) localStorage.setItem('jb_custom', JSON.stringify(data.custom));
+      if (data.stats)  Object.entries(data.stats).forEach(([k,v]) => localStorage.setItem(k, v));
+      if (data.links)  Object.entries(data.links).forEach(([k,v]) => localStorage.setItem(k, v));
+      document.getElementById('bkMsg').textContent = '✅ 복원 완료! 새로고침합니다…';
+      setTimeout(() => { closeBk(); init(); }, 900);
+    } catch (err) { alert('가져오기 실패: 올바른 백업 파일이 아닙니다.\n' + err.message); }
+  };
+  reader.readAsText(file);
+}
+
+/* ═══════════════════════════════════════════
+   SUMMARY BAR
+═══════════════════════════════════════════ */
+function buildSummary() {
+  const total   = DATA.length;
+  const pub     = DATA.filter(d => d.hasLink).length;
+  const multi   = DATA.filter(d => d.isMulti).length;
+  const noLink  = total - pub;
+  const products = [...new Set(DATA.flatMap(d => d.products))].length;
+
+  document.getElementById('sbar').style.display = 'flex';
+  document.getElementById('sbar').innerHTML = `
+    <div class="sc"><div class="sc-num">${total}</div><div class="sc-lbl">${t('📹 전체 콘텐츠','📹 All Content')}</div></div>
+    <div class="sc"><div class="sc-num" style="color:var(--green)">${pub}</div><div class="sc-lbl">${t('✅ 게시 완료','✅ Published')}</div></div>
+    <div class="sc"><div class="sc-num" style="color:var(--muted)">${noLink}</div><div class="sc-lbl">${t('⏳ 게시 대기','⏳ Pending')}</div></div>
+    <div class="sc"><div class="sc-num" style="color:var(--amber)">${multi}</div><div class="sc-lbl">${t('🔗 복합 상품 영상','🔗 Multi-Product')}</div></div>
+    <div class="sc"><div class="sc-num">${products}</div><div class="sc-lbl">${t('📦 상품 수','📦 Products')}</div></div>
+  `;
+}
+
+/* ═══════════════════════════════════════════
+   SIDEBAR
+═══════════════════════════════════════════ */
+function buildSidebar() {
+  const cnt = {};
+  DATA.forEach(d => d.products.forEach(p => cnt[p] = (cnt[p] || 0) + 1));
+  const prods = Object.keys(cnt).sort();
+
+  const chCnt = {yt:0, sg:0, my:0, gl:0, db:0};
+  DATA.forEach(d => {
+    const ml = getMergedLinks(d);
+    if (ml.yt) chCnt.yt++;
+    if (ml.sg) chCnt.sg++;
+    if (ml.my) chCnt.my++;
+    if (ml.gl) chCnt.gl++;
+    if (ml.db) chCnt.db++;
+  });
+
+  let h = `<div class="sb-hd">${t('필터','Filter')}</div>`;
+  h += sbItem('all',   t('📋 전체 콘텐츠','📋 All Content'),   DATA.length);
+  h += sbItem('multi', t('🔗 복합 상품 영상','🔗 Multi-Product'), DATA.filter(d => d.isMulti).length);
+  h += sbItem('nolnk', t('⏳ 게시 대기','⏳ Pending'),      DATA.filter(d => !d.hasLink).length);
+  h += `<div class="sb-hr"></div><div class="sb-hd">${t('채널별','By Channel')}</div>`;
+  h += sbItem('ch_yt', '▶ YouTube',     chCnt.yt);
+  h += sbItem('ch_sg', t('📷 IG 싱가폴','📷 IG Singapore'),  chCnt.sg);
+  h += sbItem('ch_my', t('📷 IG 말레이','📷 IG Malaysia'),  chCnt.my);
+  h += sbItem('ch_gl', t('🌍 IG 글로벌','🌍 IG Global'),  chCnt.gl);
+  h += sbItem('ch_db', '📦 Dropbox',    chCnt.db);
+  h += `<div class="sb-hr"></div><div class="sb-hd">${t('상품별','By Product')}</div>`;
+  prods.forEach(p => h += sbItem(p, p, cnt[p]));
+  document.getElementById('sb').innerHTML = h;
+}
+
+function sbItem(val, label, count) {
+  const a = ACTIVE === val ? ' on' : '';
+  // Use data-val attribute to avoid quoting issues with apostrophes/slashes
+  return `<div class="sb-item${a}" data-val="${e(val)}" onclick="setActive(this.dataset.val)">${e(label)}<span class="sb-cnt">${count}</span></div>`;
+}
+
+function setActive(v) {
+  ACTIVE = v;
+  buildSidebar();
+  render();
+}
+
+/* ═══════════════════════════════════════════
+   RENDER
+═══════════════════════════════════════════ */
+function render() {
+  const q = document.getElementById('srch').value.toLowerCase().trim();
+
+  let items = DATA;
+  if      (ACTIVE === 'multi')  items = items.filter(d => d.isMulti);
+  else if (ACTIVE === 'nolnk')  items = items.filter(d => !d.hasLink);
+  else if (ACTIVE === 'ch_yt')  items = items.filter(d => getMergedLinks(d).yt);
+  else if (ACTIVE === 'ch_sg')  items = items.filter(d => getMergedLinks(d).sg);
+  else if (ACTIVE === 'ch_my')  items = items.filter(d => getMergedLinks(d).my);
+  else if (ACTIVE === 'ch_gl')  items = items.filter(d => getMergedLinks(d).gl);
+  else if (ACTIVE === 'ch_db')  items = items.filter(d => getMergedLinks(d).db);
+  else if (ACTIVE !== 'all')    items = items.filter(d => d.products.includes(ACTIVE));
+
+  if (q) items = items.filter(d =>
+    d.content.toLowerCase().includes(q) ||
+    d.note.toLowerCase().includes(q) ||
+    d.products.some(p => p.toLowerCase().includes(q))
+  );
+
+  // 성과순 정렬
+  if (SORT !== 'default') {
+    items = [...items].sort((a, b) => {
+      const A = getAgg(a), B = getAgg(b);
+      if (SORT === 'views')    return B.views - A.views;
+      if (SORT === 'comments') return B.comments - A.comments;
+      return B.score - A.score;  // score
+    });
+  }
+
+  // Update section heading
+  const titles = {
+    all:   t('전체 콘텐츠',        'All Content'),
+    multi: t('🔗 복합 상품 영상',  '🔗 Multi-Product'),
+    nolnk: t('⏳ 게시 대기 콘텐츠','⏳ Pending'),
+    ch_yt: t('▶ YouTube 업로드',   '▶ YouTube'),
+    ch_sg: t('📷 IG 싱가폴 업로드','📷 IG Singapore'),
+    ch_my: t('📷 IG 말레이시아 업로드','📷 IG Malaysia'),
+    ch_gl: t('🌍 IG 글로벌 업로드','🌍 IG Global'),
+    ch_db: t('📦 Dropbox 파일',    '📦 Dropbox')
+  };
+  document.getElementById('secTitle').textContent = titles[ACTIVE] || ACTIVE;
+  document.getElementById('secCnt').textContent   = LANG === 'en' ? `${items.length} items` : `${items.length}개`;
+
+  if (!items.length) {
+    setCT(`<div class="grid"><div class="ph"><div style="font-size:36px">🔍</div><div>${t('해당하는 콘텐츠가 없습니다','No content found')}</div></div></div>`);
+    return;
+  }
+
+  // "all" view → group by product with section headers (정렬 시엔 평면 그리드)
+  if (ACTIVE === 'all' && !q && SORT === 'default') {
+    const groups = {};
+    const orphans = [];
+    items.forEach(d => {
+      if (!d.products.length) { orphans.push(d); return; }
+      // Each item appears under every product it belongs to
+      d.products.forEach(p => {
+        if (!groups[p]) groups[p] = [];
+        if (!groups[p].find(x => x.id === d.id)) groups[p].push(d);
+      });
+    });
+
+    let html = '';
+    Object.keys(groups).sort().forEach(p => {
+      html += `<div class="pg">
+        <div class="pg-bar">
+          <span class="pg-name">📦 ${e(p)}</span>
+          <span class="pg-sub">${LANG === 'en'
+            ? `${groups[p].length} items &nbsp;·&nbsp; Published ${groups[p].filter(d=>d.hasLink).length} &nbsp;·&nbsp; Pending ${groups[p].filter(d=>!d.hasLink).length}`
+            : `${groups[p].length}개 콘텐츠 &nbsp;·&nbsp; 게시 ${groups[p].filter(d=>d.hasLink).length}개 &nbsp;·&nbsp; 대기 ${groups[p].filter(d=>!d.hasLink).length}개`
+          }</span>
+        </div>
+        <div class="grid">${groups[p].map(card).join('')}</div>
+      </div>`;
+    });
+    if (orphans.length) {
+      html += `<div class="pg">
+        <div class="pg-bar"><span class="pg-name">${t('📄 기타','📄 Other')}</span><span class="pg-sub">${LANG === 'en' ? `${orphans.length} items` : `${orphans.length}개`}</span></div>
+        <div class="grid">${orphans.map(card).join('')}</div>
+      </div>`;
+    }
+    setCT(html);
+  } else {
+    setCT(`<div class="grid">${items.map(card).join('')}</div>`);
+  }
+}
+
+/* ═══════════════════════════════════════════
+   CARD
+═══════════════════════════════════════════ */
+function card(d, idx) {
+  const st = getStat(d.id);
+  const ml = getMergedLinks(d);
+
+  /* ── effective YT ID (sheet 또는 로컬 링크) ── */
+  const effYtId = d.ytId || (ml.yt ? getYTId(ml.yt) : null);
+
+  /* ── thumbnail ── */
+  let thumb;
+  if (effYtId) {
+    const fb = `this.onerror=null;this.src='https://img.youtube.com/vi/${effYtId}/hqdefault.jpg'`;
+    thumb = `<img src="https://img.youtube.com/vi/${effYtId}/mqdefault.jpg" onerror="${fb}" alt="" loading="lazy">`;
+  } else if (ml.sg || ml.my || ml.gl) {
+    thumb = `<div class="no-thumb"><div class="ic">📷</div><div class="lb">Instagram</div></div>`;
+  } else if (ml.db) {
+    thumb = `<div class="no-thumb"><div class="ic">📦</div><div class="lb">Dropbox 파일</div></div>`;
+  } else {
+    thumb = `<div class="no-thumb"><div class="ic">🎞️</div><div class="lb">${e(d.type||'콘텐츠')}</div></div>`;
+  }
+
+  /* ── badges ── */
+  const anyLink = ml.yt || ml.sg || ml.my || ml.gl || ml.db;
+  const pubBadge   = anyLink
+    ? `<span class="bch bch-pub bpos tr">✓ ${t('게시됨','Published')}</span>`
+    : `<span class="bch bch-wait bpos tr">${t('대기','Pending')}</span>`;
+  const multiBadge = d.isMulti
+    ? `<span class="bch bch-multi bpos tl">🔗 ${t('복합상품','Multi')}</span>` : '';
+  const typeBadge  = d.type
+    ? `<span class="bch bch-type bpos bl">${e(d.type)}</span>` : '';
+
+  /* ── product tags ── */
+  const tags = d.products.map(p =>
+    `<span class="tag tag-p" data-val="${e(p)}" onclick="event.stopPropagation();setActive(this.dataset.val)">${e(p)}</span>`
+  ).join('');
+
+  /* ── platform links (row1: DB·SG·YT  row2: MY·GL) ── */
+  let links1 = '', links2 = '';
+  if (ml.db)  links1 += `<a href="${e(ml.db)}" class="lb-btn lb-db" onclick="event.preventDefault();openPlayer('db','${ej(ml.db)}')">📦 Dropbox</a>`;
+  if (ml.sg)  links1 += `<a href="${e(ml.sg)}" target="_blank" class="lb-btn lb-ig-sg">📷 IG SG</a>`;
+  if (ml.yt) {
+    links1 += `<a href="${e(ml.yt)}" class="lb-btn lb-yt" onclick="event.preventDefault();openPlayer('yt','${ej(ml.yt)}')">▶ YouTube</a>`;
+  } else {
+    links1 += `<button class="lb-yt-add" data-id="${d.id}" data-title="${ej(d.content)}"
+               onclick="openLinkModal(this.dataset.id,this.dataset.title)">▶ YouTube 추가</button>`;
+  }
+  if (ml.my)  links2 += `<a href="${e(ml.my)}" target="_blank" class="lb-btn lb-ig-my">📷 IG MY</a>`;
+  if (ml.gl)  links2 += `<a href="${e(ml.gl)}" target="_blank" class="lb-btn lb-ig-gl">🌍 IG Global</a>`;
+
+  /* ── note ── */
+  const noteHtml = d.note ? `<div class="note">💬 ${e(d.note)}</div>` : '';
+
+  /* ── per-channel inline stats ── */
+  const CHDEFS = [
+    {key:'yt', ico:'▶ YT',  color:'#e50000', has: ml.yt},
+    {key:'sg', ico:'📷 SG', color:'#d6249f', has: ml.sg},
+    {key:'my', ico:'📷 MY', color:'#cc0001', has: ml.my},
+    {key:'gl', ico:'🌍 GL', color:'#7928ca', has: ml.gl},
+  ];
+  const stRows = CHDEFS.filter(c => c.has).map(c => {
+    /* YouTube: API 키 있으면 자동 통계 표시 */
+    if (c.key === 'yt') {
+      const vid = d.ytId || getYTId(ml.yt);
+      const ys  = vid ? YT_STATS[vid] : null;
+      if (ys) {
+        return `<div class="ch-row">
+          <span class="ch-ico" style="color:${c.color}">${c.ico}</span>
+          <span class="auto-stat">👁 <b>${fmtN(ys.views)}</b></span>
+          <span class="ch-dot">·</span>
+          <span class="auto-stat">❤️ ${fmtN(ys.likes)}</span>
+          <span class="ch-dot">·</span>
+          <span class="auto-stat">💬 ${fmtN(ys.comments)}</span>
+          <span class="auto-badge">AUTO</span>
+        </div>`;
+      }
+    }
+    const csv = (st || {})[c.key] || {};
+    return `<div class="ch-row">
+      <span class="ch-ico" style="color:${c.color}">${c.ico}</span>
+      <input class="sval" placeholder="조회수" value="${e(csv.v||'')}"
+             data-id="${d.id}" data-ch="${c.key}" data-field="v"
+             onchange="saveCh(this.dataset.id,this.dataset.ch,this.dataset.field,this.value)">
+      <span class="ch-dot">·</span>
+      <input class="sval sval-c" placeholder="댓글" value="${e(csv.c||'')}"
+             data-id="${d.id}" data-ch="${c.key}" data-field="c"
+             onchange="saveCh(this.dataset.id,this.dataset.ch,this.dataset.field,this.value)">
+    </div>`;
+  }).join('');
+
+  /* ── 순위 배지 (정렬 모드) ── */
+  let rankBadge = '';
+  if (SORT !== 'default') {
+    const agg = getAgg(d);
+    const metric = SORT === 'views'    ? `👁 ${fmtN(agg.views)}`
+                 : SORT === 'comments' ? `💬 ${fmtN(agg.comments)}`
+                 : `🏆 ${fmtN(agg.score)}점`;
+    rankBadge = `<div class="rank-badge"><span class="rank-num">${(idx||0)+1}</span>${metric}</div>`;
+  }
+
+  /* ── 직접등록 배지 ── */
+  const customBadge = d.isCustom
+    ? `<span class="bch bch-custom bpos br">✚ 직접등록</span>` : '';
+
+  return `<div class="card">
+    <div class="thumb">${thumb}${pubBadge}${multiBadge}${typeBadge}${customBadge}</div>
+    <div class="cb">
+      ${rankBadge}
+      <div class="ctitle">${e(d.content || '(제목 없음)')}</div>
+      ${tags ? `<div class="tags">${tags}</div>` : ''}
+      ${noteHtml}
+      <div class="links">
+        <div class="lrow">
+          ${links1}
+          ${d.isCustom
+            ? `<button class="ledit" data-id="${d.id}" data-title="${ej(d.content)}" onclick="openLinkModal(this.dataset.id,this.dataset.title)">✏️ ${t('에디트','Edit')}</button>`
+            : `<button class="ledit" data-id="${d.id}" onclick="openEdit(this.dataset.id)">✏️ ${t('수정','Edit')}</button>`}
+        </div>
+        ${links2 ? `<div class="lrow">${links2}</div>` : ''}
+      </div>
+      <div class="ch-stats">
+        ${stRows || `<div style="font-size:10px;color:var(--muted);padding:2px 0">${t('링크 추가 후 통계 입력 가능','Add links to track stats')}</div>`}
+      </div>
+      ${d.isCustom ? `<button class="del-custom" onclick="if(confirm('이 등록 영상을 삭제할까요?'))deleteCustom('${d.id}')">🗑 등록 영상 삭제</button>` : ''}
+    </div>
+  </div>`;
+}
+
+/* ═══════════════════════════════════════════
+   STATS (localStorage — per-channel inline)
+   format: { yt:{v,c}, sg:{v,c}, my:{v,c}, gl:{v,c} }
+═══════════════════════════════════════════ */
+function getStat(id) {
+  try { return JSON.parse(localStorage.getItem('jbs_' + id)); } catch { return null; }
+}
+
+function saveCh(id, ch, field, val) {
+  const st = getStat(id) || {};
+  if (!st[ch]) st[ch] = {};
+  st[ch][field] = val.trim();
+  localStorage.setItem('jbs_' + id, JSON.stringify(st));
+}
+
+/* 카드별 집계 통계 (YouTube 자동값 + 모든 채널 수동값 합산) */
+function num(s) { return parseInt(String(s||'').replace(/,/g,''), 10) || 0; }
+function getAgg(d) {
+  const ml = getMergedLinks(d);
+  const st = getStat(d.id) || {};
+  let views = 0, comments = 0, likes = 0;
+
+  // YouTube 자동 통계 우선
+  const vid = d.ytId || (ml.yt ? getYTId(ml.yt) : null);
+  const ys  = vid ? YT_STATS[vid] : null;
+  if (ys) { views += num(ys.views); comments += num(ys.comments); likes += num(ys.likes); }
+
+  // 나머지 채널 수동 입력 (yt는 자동값 있으면 건너뜀)
+  ['yt','sg','my','gl'].forEach(ch => {
+    if (ch === 'yt' && ys) return;
+    const c = st[ch] || {};
+    views += num(c.v); comments += num(c.c);
+  });
+
+  const score = views * 1 + likes * 3 + comments * 5;  // 뷰1 + 좋아요3 + 댓글5
+  return { views, comments, likes, score };
+}
+
+function setSort(v) { SORT = v; render(); }
+
+/* ═══════════════════════════════════════════
+   YOUTUBE STATS (Data API v3)
+═══════════════════════════════════════════ */
+function openYT() {
+  document.getElementById('ytKey').value = localStorage.getItem('jb_yt_apikey') || '';
+  const n = Object.keys(YT_STATS).length;
+  document.getElementById('ytMsg').textContent = n ? `현재 ${n}개 영상 통계 로드됨` : '';
+  document.getElementById('ytov').classList.add('on');
+  document.getElementById('ytKey').focus();
+}
+
+function closeYT() { document.getElementById('ytov').classList.remove('on'); }
+
+function saveYT() {
+  const k = document.getElementById('ytKey').value.trim();
+  if (k) localStorage.setItem('jb_yt_apikey', k);
+  else   localStorage.removeItem('jb_yt_apikey');
+  closeYT();
+  fetchYTStats(true);
+}
+
+async function fetchYTStats(verbose) {
+  const key = localStorage.getItem('jb_yt_apikey');
+  if (!key) return;
+
+  // 모든 카드의 YouTube video ID 수집 (중복 제거)
+  const ids = [...new Set(DATA.map(d => {
+    const ml = getMergedLinks(d);
+    return d.ytId || (ml.yt ? getYTId(ml.yt) : null);
+  }).filter(Boolean))];
+  if (!ids.length) { if (verbose) alert('YouTube 링크가 있는 영상이 없습니다.'); return; }
+
+  try {
+    let loaded = 0;
+    for (let i = 0; i < ids.length; i += 50) {
+      const batch = ids.slice(i, i + 50);
+      const url = `https://www.googleapis.com/youtube/v3/videos?part=statistics&id=${batch.join(',')}&key=${key}`;
+      const json = await fetch(url).then(r => r.json());
+      if (json.error) {
+        alert('YouTube API 오류:\n' + (json.error.message || JSON.stringify(json.error)));
+        return;
+      }
+      (json.items || []).forEach(it => {
+        YT_STATS[it.id] = {
+          views   : it.statistics.viewCount    || '0',
+          likes   : it.statistics.likeCount    || '0',
+          comments: it.statistics.commentCount || '0'
+        };
+        loaded++;
+      });
+    }
+    document.getElementById('meta').textContent =
+      `YT 통계 ${loaded}개 · ${new Date().toLocaleTimeString('ko-KR')}`;
+    render();
+    if (verbose) {
+      const miss = ids.length - loaded;
+      alert(`완료: ${loaded}개 영상 통계를 불러왔습니다.` +
+            (miss > 0 ? `\n(${miss}개는 비공개/삭제됨)` : ''));
+    }
+  } catch (e) {
+    alert('YouTube 통계 불러오기 실패: ' + e.message);
+  }
+}
+
+/* ═══════════════════════════════════════════
+   VIDEO PLAYER
+═══════════════════════════════════════════ */
+function openPlayer(type, url) {
+  const c = document.getElementById('pvContent');
+  document.getElementById('pvExt').href = url;
+  if (type === 'yt') {
+    const vid = getYTId(url);
+    if (!vid) { window.open(url, '_blank'); return; }
+    c.innerHTML = `<iframe src="https://www.youtube.com/embed/${vid}?autoplay=1&mute=1&rel=0" frameborder="0" allow="autoplay;encrypted-media;fullscreen;picture-in-picture" allowfullscreen></iframe>`;
+  } else if (type === 'db') {
+    window.open(url, '_blank');
+    return;
+  }
+  document.getElementById('pvov').classList.add('on');
+}
+
+function closePlayer() {
+  document.getElementById('pvov').classList.remove('on');
+  document.getElementById('pvContent').innerHTML = '';
+}
+
+/* ═══════════════════════════════════════════
+   LINKS (localStorage)
+═══════════════════════════════════════════ */
+function getLinks(id) {
+  try { return JSON.parse(localStorage.getItem('jbl_' + id)); } catch { return null; }
+}
+
+function getMergedLinks(d) {
+  const loc = getLinks(d.id) || {};
+  // loc keys override sheet data; undefined means "use sheet default"
+  return {
+    yt : loc.yt !== undefined ? loc.yt : (d.ytLinks[0] || ''),
+    sg : loc.sg !== undefined ? loc.sg : (d.igSG     || ''),
+    my : loc.my !== undefined ? loc.my : (d.igMY || ''),
+    gl : loc.gl !== undefined ? loc.gl : (d.igGlobal  || ''),
+    db : loc.db !== undefined ? loc.db : (d.dbLink || (d.isDropbox ? d.rawContent.split('\n')[0].trim() : ''))
+  };
+}
+
+function openLinkModal(id, title) {
+  LID = id;
+  const d  = DATA.find(x => x.id === id);
+  const ml = getMergedLinks(d);
+  document.getElementById('lSub').textContent   = title;
+  document.getElementById('lYT').value          = ml.yt;
+  document.getElementById('lSG').value          = ml.sg;
+  document.getElementById('lMY').value          = ml.my;
+  document.getElementById('lGL').value          = ml.gl;
+  document.getElementById('lDB').value          = ml.db;
+  document.getElementById('lov').classList.add('on');
+  document.getElementById('lDB').focus();
+}
+
+function closeLinkModal() {
+  document.getElementById('lov').classList.remove('on');
+  LID = null;
+}
+
+function saveLinks() {
+  if (!LID) return;
+  localStorage.setItem('jbl_' + LID, JSON.stringify({
+    yt : document.getElementById('lYT').value.trim(),
+    sg : document.getElementById('lSG').value.trim(),
+    my : document.getElementById('lMY').value.trim(),
+    gl : document.getElementById('lGL').value.trim(),
+    db : document.getElementById('lDB').value.trim()
+  }));
+  closeLinkModal();
+  render();
+}
+
+/* ═══════════════════════════════════════════
+   UTILS
+═══════════════════════════════════════════ */
+function setCT(h) { document.getElementById('ct').innerHTML = h; }
+function e(s)  { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function ej(s) { return String(s||'').replace(/\\/g,'\\\\').replace(/"/g,'&quot;'); }
+function fmtN(s) {
+  const n = parseInt(String(s).replace(/,/g,''), 10);
+  if (isNaN(n)) return s;
+  if (n >= 1000000) return (n / 1000000).toFixed(1) + 'M';
+  if (n >= 1000)    return (n / 1000).toFixed(1) + 'K';
+  return String(n);
+}
+
+/* ═══════════════════════════════════════════
+   EVENTS
+═══════════════════════════════════════════ */
+document.getElementById('srch').addEventListener('input', render);
+document.getElementById('lov').addEventListener('click', ev => {
+  if (ev.target === document.getElementById('lov')) closeLinkModal();
+});
+document.getElementById('pvov').addEventListener('click', ev => {
+  if (ev.target === document.getElementById('pvov')) closePlayer();
+});
+document.getElementById('ytov').addEventListener('click', ev => {
+  if (ev.target === document.getElementById('ytov')) closeYT();
+});
+document.getElementById('addov').addEventListener('click', ev => {
+  if (ev.target === document.getElementById('addov')) closeAdd();
+});
+document.getElementById('bkov').addEventListener('click', ev => {
+  if (ev.target === document.getElementById('bkov')) closeBk();
+});
+document.addEventListener('keydown', ev => {
+  if (ev.key === 'Escape') { closeLinkModal(); closePlayer(); closeYT(); closeAdd(); closeBk(); }
+});
+
+/* ── INIT ── */
+document.addEventListener('DOMContentLoaded', applyLang);
+init();
+</script>
+</body>
+</html>

@@ -1,0 +1,4 @@
+# 화이트리스트 방식: 전체 차단 후 공개할 파일만 명시
+*
+!.gitignore
+!JB_Contents_Dashboard.html
