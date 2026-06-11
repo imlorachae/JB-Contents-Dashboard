@@ -59,15 +59,29 @@ body{font-family:-apple-system,'Noto Sans KR',BlinkMacSystemFont,'Segoe UI',sans
   position:sticky;top:56px;height:calc(100vh - 56px);overflow-y:auto;
 }
 .sb-hd{padding:8px 16px 4px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--muted)}
+.sb-hd.togglable{display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none}
+.sb-hd.togglable:hover{color:var(--p)}
+.sb-arrow{display:inline-block;margin-right:4px;font-size:9px;transition:transform .15s}
+.sb-arrow.closed{transform:rotate(-90deg)}
+.sb-hd-add{background:none;border:none;cursor:pointer;font-size:14px;color:var(--muted);padding:0 4px;line-height:1;border-radius:3px}
+.sb-hd-add:hover{color:var(--p);background:var(--bg)}
 .sb-item{
   padding:7px 16px;font-size:13px;cursor:pointer;
   display:flex;justify-content:space-between;align-items:center;
   transition:background .1s;border-right:3px solid transparent;
+  position:relative;
 }
 .sb-item:hover{background:var(--bg)}
 .sb-item.on{background:var(--p-bg);color:var(--p);font-weight:600;border-right-color:var(--p)}
-.sb-cnt{font-size:11px;padding:1px 6px;border-radius:20px;background:var(--bg);color:var(--muted)}
+.sb-cnt{font-size:11px;padding:1px 6px;border-radius:20px;background:var(--bg);color:var(--muted);flex-shrink:0}
 .sb-item.on .sb-cnt{background:#ddd6fe;color:var(--p)}
+.sb-item-label{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sb-item-edit{opacity:0;font-size:11px;margin:0 3px;color:var(--muted);cursor:pointer;flex-shrink:0}
+.sb-item:hover .sb-item-edit{opacity:.55}
+.sb-item-edit:hover{opacity:1!important;color:var(--p)}
+.sb-item-del{opacity:0;font-size:13px;margin-left:3px;color:var(--muted);cursor:pointer;flex-shrink:0;line-height:1}
+.sb-item:hover .sb-item-del{opacity:.45}
+.sb-item-del:hover{opacity:1!important;color:#ef4444}
 .sb-hr{height:1px;background:var(--border);margin:8px 0}
 
 /* ── MAIN ── */
@@ -546,6 +560,9 @@ const SID   = '1p1RT3Jdy1NBWbR2pIaXn0VJxQrh6v4kokMNajO_yrlc';
 const SNAME = 'Contentes';
 let DATA = [], ACTIVE = 'all', LID = null, YT_STATS = {}, SORT = 'default';
 let EDIT_MODE = 'add', EDIT_TARGET = null;   // 등록/수정 모달 상태
+let COLLAPSED      = JSON.parse(localStorage.getItem('jb_collapsed')   || '{}');
+let PROD_NAMES     = JSON.parse(localStorage.getItem('jb_prod_names')  || '{}');
+let CUSTOM_FILTERS = JSON.parse(localStorage.getItem('jb_cfilters')    || '[]');
 
 /* ═══════════════════════════════════════════
    FETCH & PARSE
@@ -858,6 +875,54 @@ function buildSummary() {
 ═══════════════════════════════════════════ */
 const BRANDED_PRODUCTS = ['Chamuhee', 'Yoga'];
 
+function getProdDisplayName(original) {
+  return PROD_NAMES[original] || original;
+}
+
+function toggleSection(key) {
+  COLLAPSED[key] = !COLLAPSED[key];
+  localStorage.setItem('jb_collapsed', JSON.stringify(COLLAPSED));
+  buildSidebar();
+}
+
+function editProdName(ev, original) {
+  ev.stopPropagation();
+  const cur = getProdDisplayName(original);
+  const nxt = prompt(t(`"${original}" 이름 변경:`, `Rename "${original}":`), cur);
+  if (nxt !== null && nxt.trim()) {
+    PROD_NAMES[original] = nxt.trim();
+    localStorage.setItem('jb_prod_names', JSON.stringify(PROD_NAMES));
+    buildSidebar();
+  }
+}
+
+function addCustomFilter() {
+  const name = prompt(t('필터 이름 (표시될 이름):', 'Filter name:'));
+  if (!name || !name.trim()) return;
+  const kw = prompt(t('검색 키워드 (제목·상품 포함 여부로 필터링):', 'Keyword (filters by title or product):'));
+  if (!kw || !kw.trim()) return;
+  const id = 'cf_' + Date.now();
+  CUSTOM_FILTERS.push({ id, name: name.trim(), keyword: kw.trim() });
+  localStorage.setItem('jb_cfilters', JSON.stringify(CUSTOM_FILTERS));
+  buildSidebar();
+}
+
+function removeCustomFilter(ev, id) {
+  ev.stopPropagation();
+  CUSTOM_FILTERS = CUSTOM_FILTERS.filter(f => f.id !== id);
+  localStorage.setItem('jb_cfilters', JSON.stringify(CUSTOM_FILTERS));
+  if (ACTIVE === id) { ACTIVE = 'all'; document.getElementById('srch').value = ''; }
+  buildSidebar();
+  render();
+}
+
+function setActiveCustomFilter(id, kw) {
+  ACTIVE = id;
+  document.getElementById('srch').value = kw;
+  buildSidebar();
+  render();
+}
+
 function buildSidebar() {
   const cnt = {};
   DATA.forEach(d => d.products.forEach(p => cnt[p] = (cnt[p] || 0) + 1));
@@ -874,28 +939,62 @@ function buildSidebar() {
     if (ml.db) chCnt.db++;
   });
 
+  const sHdr = (key, label, actionBtn) => {
+    const closed = !!COLLAPSED[key];
+    const btn = actionBtn
+      ? `<button class="sb-hd-add" onclick="event.stopPropagation();${actionBtn}" title="${t('추가','Add')}">＋</button>`
+      : '';
+    return `<div class="sb-hd togglable" onclick="toggleSection('${key}')">
+      <span><span class="sb-arrow${closed?' closed':''}">▾</span>${label}</span>${btn}
+    </div>`;
+  };
+
   // 채널 먼저
-  let h = `<div class="sb-hd">${t('채널별','By Channel')}</div>`;
-  h += sbItem('ch_sg', t('📷 IG 싱가폴','📷 IG Singapore'), chCnt.sg);
-  h += sbItem('ch_gl', t('🌍 IG 글로벌','🌍 IG Global'),    chCnt.gl);
-  h += sbItem('ch_my', t('📷 IG 말레이','📷 IG Malaysia'),  chCnt.my);
-  h += sbItem('ch_yt', '▶ YouTube',                         chCnt.yt);
-  h += sbItem('ch_db', '📦 Dropbox',                        chCnt.db);
+  let h = sHdr('channel', t('채널별','By Channel'));
+  if (!COLLAPSED['channel']) {
+    h += sbItem('ch_sg', t('📷 IG 싱가폴','📷 IG Singapore'), chCnt.sg);
+    h += sbItem('ch_gl', t('🌍 IG 글로벌','🌍 IG Global'),    chCnt.gl);
+    h += sbItem('ch_my', t('📷 IG 말레이','📷 IG Malaysia'),  chCnt.my);
+    h += sbItem('ch_yt', '▶ YouTube',                         chCnt.yt);
+    h += sbItem('ch_db', '📦 Dropbox',                        chCnt.db);
+  }
 
   // 필터
-  h += `<div class="sb-hr"></div><div class="sb-hd">${t('필터','Filter')}</div>`;
-  h += sbItem('all',   t('📋 전체 콘텐츠','📋 All Content'),    DATA.length);
-  h += sbItem('multi', t('🔗 복합 상품 영상','🔗 Multi-Product'), DATA.filter(d => d.isMulti).length);
-  h += sbItem('nolnk', t('⏳ 게시 대기','⏳ Pending'),           DATA.filter(d => !d.hasLink).length);
+  h += '<div class="sb-hr"></div>';
+  h += sHdr('filter', t('필터','Filter'), 'addCustomFilter()');
+  if (!COLLAPSED['filter']) {
+    h += sbItem('all',   t('📋 전체 콘텐츠','📋 All Content'),    DATA.length);
+    h += sbItem('multi', t('🔗 복합 상품 영상','🔗 Multi-Product'), DATA.filter(d => d.isMulti).length);
+    h += sbItem('nolnk', t('⏳ 게시 대기','⏳ Pending'),           DATA.filter(d => !d.hasLink).length);
+    CUSTOM_FILTERS.forEach(f => {
+      const cfCnt = DATA.filter(d =>
+        d.content.toLowerCase().includes(f.keyword.toLowerCase()) ||
+        d.products.some(p => p.toLowerCase().includes(f.keyword.toLowerCase()))
+      ).length;
+      const a = ACTIVE === f.id ? ' on' : '';
+      const kw = f.keyword.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+      h += `<div class="sb-item${a}" onclick="setActiveCustomFilter('${f.id}','${kw}')">
+        <span class="sb-item-label">🔖 ${e(f.name)}</span>
+        <span class="sb-cnt">${cfCnt}</span>
+        <span class="sb-item-del" onclick="removeCustomFilter(event,'${f.id}')" title="${t('삭제','Delete')}">×</span>
+      </div>`;
+    });
+  }
 
   // 일반 상품
-  h += `<div class="sb-hr"></div><div class="sb-hd">${t('상품별','Products')}</div>`;
-  prods.forEach(p => h += sbItem(p, p, cnt[p]));
+  h += '<div class="sb-hr"></div>';
+  h += sHdr('products', t('상품별','Products'));
+  if (!COLLAPSED['products']) {
+    prods.forEach(p => h += sbItemEditable(p, getProdDisplayName(p), cnt[p]));
+  }
 
   // 브랜디드 / 컨셉
   if (branded.length) {
-    h += `<div class="sb-hr"></div><div class="sb-hd">${t('브랜디드','Branded')}</div>`;
-    branded.forEach(p => h += sbItem(p, p, cnt[p]));
+    h += '<div class="sb-hr"></div>';
+    h += sHdr('branded', t('브랜디드','Branded'));
+    if (!COLLAPSED['branded']) {
+      branded.forEach(p => h += sbItemEditable(p, getProdDisplayName(p), cnt[p]));
+    }
   }
 
   document.getElementById('sb').innerHTML = h;
@@ -903,12 +1002,24 @@ function buildSidebar() {
 
 function sbItem(val, label, count) {
   const a = ACTIVE === val ? ' on' : '';
-  // Use data-val attribute to avoid quoting issues with apostrophes/slashes
-  return `<div class="sb-item${a}" data-val="${e(val)}" onclick="setActive(this.dataset.val)">${e(label)}<span class="sb-cnt">${count}</span></div>`;
+  return `<div class="sb-item${a}" data-val="${e(val)}" onclick="setActive(this.dataset.val)">
+    <span class="sb-item-label">${e(label)}</span><span class="sb-cnt">${count}</span>
+  </div>`;
+}
+
+function sbItemEditable(val, displayName, count) {
+  const a = ACTIVE === val ? ' on' : '';
+  const safeVal = e(val);
+  return `<div class="sb-item${a}" data-val="${safeVal}" onclick="setActive(this.dataset.val)">
+    <span class="sb-item-label">${e(displayName)}</span>
+    <span class="sb-cnt">${count}</span>
+    <span class="sb-item-edit" data-orig="${safeVal}" onclick="editProdName(event,this.dataset.orig)" title="${t('이름 변경','Rename')}">✏</span>
+  </div>`;
 }
 
 function setActive(v) {
   ACTIVE = v;
+  document.getElementById('srch').value = '';
   buildSidebar();
   render();
 }
@@ -927,6 +1038,7 @@ function render() {
   else if (ACTIVE === 'ch_my')  items = items.filter(d => getMergedLinks(d).my);
   else if (ACTIVE === 'ch_gl')  items = items.filter(d => getMergedLinks(d).gl);
   else if (ACTIVE === 'ch_db')  items = items.filter(d => getMergedLinks(d).db);
+  else if (ACTIVE.startsWith('cf_')) { /* custom filter: keyword applied via search box */ }
   else if (ACTIVE !== 'all')    items = items.filter(d => d.products.includes(ACTIVE));
 
   if (q) items = items.filter(d =>
@@ -956,7 +1068,8 @@ function render() {
     ch_gl: t('🌍 IG 글로벌 업로드','🌍 IG Global'),
     ch_db: t('📦 Dropbox 파일',    '📦 Dropbox')
   };
-  document.getElementById('secTitle').textContent = titles[ACTIVE] || ACTIVE;
+  const cfMatch = CUSTOM_FILTERS.find(f => f.id === ACTIVE);
+  document.getElementById('secTitle').textContent = titles[ACTIVE] || (cfMatch ? `🔖 ${cfMatch.name}` : ACTIVE);
   document.getElementById('secCnt').textContent   = LANG === 'en' ? `${items.length} items` : `${items.length}개`;
 
   if (!items.length) {
