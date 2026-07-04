@@ -322,10 +322,6 @@ body{font-family:-apple-system,'Noto Sans KR',BlinkMacSystemFont,'Segoe UI',sans
   <div class="modal" style="width:460px">
     <h3 id="addTitle">➕ 영상 등록</h3>
     <div class="sub" id="addSub">새 콘텐츠를 <b>구글 시트</b>에 추가합니다 → 팀 전체에 공유됩니다.</div>
-    <div id="addWebappRow">
-      <div class="field"><label>🔗 웹앱 URL <span style="font-weight:400">(최초 1회만 입력하면 저장됨)</span></label><input id="aWebapp" placeholder="https://script.google.com/.../exec"></div>
-      <div style="height:1px;background:var(--border);margin:4px 0 12px"></div>
-    </div>
     <div class="field"><label>📦 상품명 * <span style="font-weight:400">(여러 개는 콤마로 구분)</span></label><input id="aProd" placeholder="예: CO2 Mask, Ampoule"></div>
     <div class="field"><label>📝 제목 *</label><input id="aTitle" placeholder="영상 제목"></div>
     <div class="field"><label>🎬 타입</label><input id="aType" placeholder="예: Video, Image, Short"></div>
@@ -475,8 +471,6 @@ function applyLang() {
     addSubEl.innerHTML = t('새 콘텐츠를 <b>구글 시트</b>에 추가합니다 → 팀 전체에 공유됩니다.', 'Add new content to <b>Google Sheet</b> — shared with the team.');
   }
   // add modal field labels & placeholders
-  const addWebappLabel = document.querySelector('label[for="aWebapp"],#addWebappRow label');
-  if (addWebappLabel) addWebappLabel.innerHTML = t('🔗 웹앱 URL <span style="font-weight:400">(최초 1회만 입력하면 저장됨)</span>', '🔗 Web App URL <span style="font-weight:400">(saved after first entry)</span>');
   const aProdLabel = document.querySelector('#addov label[for="aProd"],#addov .field:has(#aProd) label');
   if (!aProdLabel) {
     // fallback: find by text content near aProd
@@ -682,23 +676,17 @@ const ADD_FIELDS = ['aProd','aTitle','aType','aNote','aDB','aSG','aYT','aMY','aG
 function openAdd() {
   EDIT_MODE = 'add'; EDIT_TARGET = null;
   ADD_FIELDS.forEach(id => document.getElementById(id).value = '');
-  const savedUrl = localStorage.getItem('jb_webapp_url') || '';
-  document.getElementById('aWebapp').value = savedUrl;
   document.getElementById('addTitle').textContent = t('➕ 영상 등록', '➕ Add Video');
   document.getElementById('addSub').innerHTML = t('새 콘텐츠를 <b>구글 시트</b>에 추가합니다 → 팀 전체에 공유됩니다.', 'Add new content to <b>Google Sheet</b> — shared with the team.');
   document.getElementById('addSaveBtn').textContent = t('등록', 'Save');
-  document.getElementById('addWebappRow').style.display = savedUrl ? 'none' : 'block';
   document.getElementById('addDelBtn').style.display = 'none';
   document.getElementById('addov').classList.add('on');
-  document.getElementById(savedUrl ? 'aProd' : 'aWebapp').focus();
+  document.getElementById('aProd').focus();
 }
 
 function openEdit(id) {
   const d = DATA.find(x => x.id === id);
   if (!d) return;
-  if (!localStorage.getItem('jb_webapp_url')) {
-    alert('먼저 ➕ 영상 등록에서 웹앱 URL을 1회 입력해 주세요.'); return;
-  }
   EDIT_MODE = 'edit';
   EDIT_TARGET = { id: d.id, row: d.sheetRow, title: d.rawContent || d.content };
   const ml = getMergedLinks(d);
@@ -729,14 +717,7 @@ function saveAdd() {
   const title = document.getElementById('aTitle').value.trim();
   if (!prod || !title) { alert('상품명과 제목은 필수입니다.'); return; }
 
-  let webapp = localStorage.getItem('jb_webapp_url') || '';
-  if (EDIT_MODE === 'add') {
-    const typed = document.getElementById('aWebapp').value.trim();
-    if (!typed) { alert('맨 위 칸에 웹앱 URL을 입력하세요.\n한 번만 입력하면 다음부터 자동 저장됩니다.'); return; }
-    webapp = typed;
-    localStorage.setItem('jb_webapp_url', webapp);
-  }
-  if (!webapp) { alert('웹앱 URL이 없습니다.'); return; }
+  const webapp = WEBAPP_URL;
 
   const fields = {
     products: prod, content: title,
@@ -774,8 +755,7 @@ function saveAdd() {
 function deleteItem(id) {
   const d = DATA.find(x => x.id === id);
   if (!d) return;
-  const webapp = localStorage.getItem('jb_webapp_url');
-  if (!webapp) { alert('먼저 ➕ 영상 등록에서 웹앱 URL을 1회 입력해 주세요.'); return; }
+  const webapp = WEBAPP_URL;
   if (!confirm(`"${d.content}"\n이 항목을 구글 시트에서 삭제할까요? (팀 전체에 반영됩니다)`)) return;
 
   const payload = { action: 'delete', row: d.sheetRow, expectTitle: d.rawContent || d.content };
@@ -874,6 +854,7 @@ function buildSummary() {
    SIDEBAR
 ═══════════════════════════════════════════ */
 const BRANDED_PRODUCTS = ['Chamuhee', 'Yoga'];
+const WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbxvBGuUiohvRcF9RJWPYkASV6lGZA3DaCZ1TywJuWNCbfF_kO9AC4_0THE0FsACqys8/exec';
 
 function getProdDisplayName(original) {
   return PROD_NAMES[original] || original;
